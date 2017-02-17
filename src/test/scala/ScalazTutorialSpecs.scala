@@ -1,7 +1,11 @@
+import com.example.{COption, CSome}
+import org.scalacheck.Test
 import org.scalatest.{FlatSpec, Matchers}
 
-import  scalaz._
+import scalaz._
 import Scalaz._
+import scalacheck.ScalazProperties._
+import scalacheck.ScalaCheckBinding._
 
 
 class ScalazTutorialSpecs extends FlatSpec with Matchers {
@@ -63,5 +67,31 @@ class ScalazTutorialSpecs extends FlatSpec with Matchers {
   "fold" should "work on all options" in {
     Option("hello").fold(-1)(_.length) shouldBe 5
     none[String].fold(-1)(_.length) shouldBe -1
+  }
+
+  "FunctorSpec" should "verify if the Functor created follows the Functor laws" in {
+
+
+//    Test.check(functor.laws[Option]., Test.Parameters.default)
+    //TODO only works in Console. Figure out how Test.check can be incorporated
+    functor.laws[Option].check()
+    pending
+  }
+
+  "COption" should "verify that functor law fails as identity is not giving the same object back" in {
+
+
+    import COption._
+    (CSome(0, "ho"): COption[String]).map{s:String=>s +"ha"} shouldBe CSome(1,"hoha")
+    (CSome(0, "ho"): COption[String]).map{identity} shouldBe CSome(1,"ho") // This breaks Functor law
+
+    import org.scalacheck.{Gen, Arbitrary}
+    implicit def COptionArbiterary[A](implicit a: Arbitrary[A]): Arbitrary[COption[A]] = a map { a => (CSome(0, a): COption[A]) }
+
+    //TODO this should run in console. but is throwing strange exception
+    //Exception encountered when attempting to run a suite with class name: ScalazTutorialSpecs *** ABORTED ***
+//        functor.laws[COption].check()
+
+    pending
   }
 }
